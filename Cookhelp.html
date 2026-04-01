@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Easy Cook Master - Mom's Pro Guide</title>
+    <style>
+        :root {
+            --cooker-red: #e63946;
+            --eco-green: #27ae60;
+            --quick-blue: #0984e3;
+            --bg-glass: #f1f2f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #dfe6e9;
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center;
+        }
+
+        .app-container {
+            max-width: 450px; width: 100%;
+            background: white; border-radius: 40px;
+            padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 { color: var(--cooker-red); font-size: 28px; margin: 0; text-align: center; letter-spacing: -1px; }
+        .subtitle { font-size: 13px; color: #999; margin-bottom: 25px; text-align: center; }
+
+        /* Style Selector Buttons */
+        .style-picker {
+            display: flex; gap: 10px; margin-bottom: 25px;
+        }
+
+        .style-btn {
+            flex: 1; padding: 15px; border-radius: 15px; border: 2px solid #eee;
+            background: white; cursor: pointer; font-weight: 700; transition: 0.3s;
+            font-size: 14px; color: #666;
+        }
+
+        .style-btn.active-eco { border-color: var(--eco-green); background: #e8f8f0; color: var(--eco-green); }
+        .style-btn.active-quick { border-color: var(--quick-blue); background: #eaf4ff; color: var(--quick-blue); }
+
+        .input-card { background: #fdfdfd; border: 1px solid #eee; padding: 20px; border-radius: 25px; margin-bottom: 20px; }
+        label { font-size: 10px; font-weight: 800; color: #bbb; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 8px; }
+        input { width: 100%; border: none; border-bottom: 2px solid #eee; font-size: 24px; padding: 10px 0; outline: none; text-align: center; }
+
+        .main-btn { background: var(--cooker-red); color: white; border: none; padding: 22px; width: 100%; border-radius: 20px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 25px rgba(230, 57, 70, 0.3); }
+        
+        #result { display: none; margin-top: 30px; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .result-box { padding: 25px; border-radius: 25px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+        .mode-header { font-size: 30px; font-weight: 900; margin-bottom: 15px; }
+        
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .stat-label { color: #888; font-weight: 600; font-size: 14px; }
+        .stat-value { color: #333; font-weight: 800; font-size: 18px; }
+
+        .cost-strip { background: #fff9e6; color: #856404; padding: 12px; border-radius: 12px; font-weight: 700; text-align: center; margin-top: 15px; border: 1px dashed #ffeeba; }
+        .tip-text { font-size: 13px; color: #7f8c8d; line-height: 1.5; margin-top: 15px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>Easy Cook Master</h1>
+    <div class="subtitle">Personal Assistant for Mom & Shanu</div>
+
+    <label>1. Pick Cooking Style</label>
+    <div class="style-picker">
+        <button id="ecoBtn" class="style-btn active-eco" onclick="setStyle('eco')">🌿 Eco-Saver<br><small>(Save Money)</small></button>
+        <button id="quickBtn" class="style-btn" onclick="setStyle('quick')">⚡ Quick Cook<br><small>(Save Time)</small></button>
+    </div>
+
+    <div class="input-card">
+        <label>2. What are you making?</label>
+        <input type="text" id="dishInput" placeholder="Pathiri, Tea, Rice..." autocomplete="off">
+    </div>
+
+    <button class="main-btn" onclick="generateGuide()">GET SETTINGS</button>
+
+    <div id="result">
+        <div class="result-box" id="resBox">
+            <div class="mode-header" id="outMode">🍲 Braise</div>
+            
+            <div class="stat-row">
+                <span class="stat-label">⏱️ Cooking Time</span>
+                <span class="stat-value" id="outTime">25 Mins</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">🔌 Set Power To</span>
+                <span class="stat-value" id="outPower">800W</span>
+            </div>
+
+            <div class="cost-strip" id="outCost">Cost: ₹0.72</div>
+            
+            <p class="tip-text" id="outTip">This mode uses less electricity by cooking slowly.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStyle = 'eco';
+
+    function setStyle(style) {
+        currentStyle = style;
+        document.getElementById('ecoBtn').className = 'style-btn' + (style === 'eco' ? ' active-eco' : '');
+        document.getElementById('quickBtn').className = 'style-btn' + (style === 'quick' ? ' active-quick' : '');
+    }
+
+    function generateGuide() {
+        const dish = document.getElementById('dishInput').value.toLowerCase().trim();
+        const display = document.getElementById('result');
+        if(!dish) return;
+
+        display.style.display = 'block';
+
+        let mode = "🥘 Hot-Pot";
+        let watts = 1000;
+        let mins = 10;
+        let tip = "Standard setting. Keep an eye on it!";
+        let accent = "#2d3436";
+
+        // Logic Brain
+        if (dish.includes('pathiri') || dish.includes('chappathi') || dish.includes('dosa') || dish.includes('appam')) {
+            mode = "🍳 Fry / Quick Fry";
+            if(currentStyle === 'eco') { watts = 1200; mins = 18; tip = "Pre-heat on 1600W for 1 min, then cook on 1200W to save current."; }
+            else { watts = 1800; mins = 10; tip = "Fast and hot! Stay near the stove."; }
+            accent = "#e67e22";
+        } 
+        else if (dish.includes('rice') || dish.includes('curry') || dish.includes('sambar') || dish.includes('dal') || dish.includes('puttu')) {
+            mode = "🍲 Braise / Slow Fire";
+            if(currentStyle === 'eco') { watts = 800; mins = 30; tip = "The most economical way to cook heavy dishes."; }
+            else { watts = 1400; mins = 15; tip = "Boils faster, but uses more units per minute."; }
+            accent = "#27ae60";
+        }
+        else if (dish.includes('tea') || dish.includes('milk') || dish.includes('water')) {
+            mode = "🍵 Hot-Pot";
+            if(currentStyle === 'eco') { watts = 1000; mins = 8; tip = "Medium heat is safer for milk."; }
+            else { watts = 1600; mins = 4; tip = "Super fast! Don't let it overflow."; }
+            accent = "#0984e3";
+        }
+        else if (!["food","eat","meat","veg","fry","boil","cook","rice","tea","milk","curry","dal","sambar","pathiri","chappathi","egg","fish","soup","puttu","appam","dosa"].some(el => dish.includes(el))) {
+            mode = "❌ Not Food";
+            watts = 0; mins = 0; tip = "Shanu, don't try to cook a " + dish + "!";
+            accent = "#000";
+        }
+
+        // Cost Calculation (₹6 per unit)
+        let units = (watts * (mins / 60)) / 1000;
+        let cost = units * 6;
+
+        // UI Updates
+        document.getElementById('outMode').innerText = mode;
+        document.getElementById('outTime').innerText = mins + " Mins";
+        document.getElementById('outPower').innerText = (watts > 0 ? watts + "W" : "OFF");
+        document.getElementById('outCost').innerText = "Estimated Cost: ₹" + cost.toFixed(2);
+        document.getElementById('outTip').innerText = tip;
+        document.getElementById('resBox').style.borderTop = "8px solid " + accent;
+
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
